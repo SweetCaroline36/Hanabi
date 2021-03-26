@@ -1,4 +1,4 @@
-//Hanabi 
+//Hanabi By Caroline Conner 
 struct Card: CustomStringConvertible {
 
     enum Color: CaseIterable {
