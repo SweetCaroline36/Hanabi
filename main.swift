@@ -417,11 +417,10 @@ class ComputerPlayer: Player {
         }
         else {
             for index in 0...5 {
-                 if !save.contains(index) {
+                 //if !save.contains(index) {
 
             }
             return .discard(card: 0)
-            }
         }
     }
     func receivePlayerMoves(player: Int, move: Move) {}
