@@ -1,16 +1,15 @@
 //Hanabi By Caroline Conner 
 struct Card: CustomStringConvertible {
-
     enum Color: CaseIterable {
         case blue, red, yellow, green, purple
 
         var description: String {
             switch self {
-            case .blue: return "blue"
-            case .red: return "red"
-            case .yellow: return "yellow"
-            case .green: return "green"
-            case .purple: return "purple"
+                case .blue: return "blue"
+                case .red: return "red"
+                case .yellow: return "yellow"
+                case .green: return "green"
+                case .purple: return "purple"
             }
         }
     }
@@ -22,18 +21,18 @@ struct Card: CustomStringConvertible {
 
         var value: Int {
             switch self {
-            case .one: return 1
-            case .two: return 2
-            case .three: return 3
-            case .four: return 4
-            case .five: return 5
+                case .one: return 1
+                case .two: return 2
+                case .three: return 3
+                case .four: return 4
+                case .five: return 5
             }
         }
         var frequency: Int {
             switch self {
-            case .one: return 3
-            case .two, .three, .four: return 2
-            case .five: return 1
+                case .one: return 3
+                case .two, .three, .four: return 2
+                case .five: return 1
             }
         }
     }
@@ -129,7 +128,7 @@ struct Game {
     }
 
     mutating func run() {
-       updateEverything()
+        updateEverything()
 
         while !gameOver {
             for playerIndex in players.indices {
@@ -149,7 +148,7 @@ struct Game {
                 case .giveInfo(let otherPlayer, let info):
 
                     var indices: [Int] = []
-                    
+
                     for cardIndex in hands[otherPlayer].indices {
                         switch info {
                         case .color(let color): 
@@ -169,7 +168,7 @@ struct Game {
 
                     hands[playerIndex].remove(at: cardIndex)
                     if infoCount < maxInfoCount { infoCount += 1 }
-                    
+
                     if let newCard = deck.drawCard() {
                         hands[playerIndex].append(newCard)
                     } 
@@ -263,7 +262,7 @@ class ConsolePlayer: Player {
 
     func selectMove() -> Move {
         var finalMove: Move? = nil
-        
+
         while finalMove == nil {
             print("\nWhat would you like to do?\nPlay: 1, Discard: 2, Info: 3")
 
@@ -417,8 +416,8 @@ class ComputerPlayer: Player {
         }
         else {
             for index in 0...5 {
-                 //if !save.contains(index) {
-
+                if !save.contains(index) {
+                }
             }
             return .discard(card: 0)
         }
@@ -433,8 +432,8 @@ enum Move {
         case number(Card.Number)
         var description: String {
             switch self {
-            case .color(let color): return color.description
-            case .number(let number): return number.description
+                case .color(let color): return color.description
+                case .number(let number): return number.description
             }
         }
     }
