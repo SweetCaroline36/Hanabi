@@ -1,15 +1,87 @@
 //Hanabi By Caroline Conner 
+
+// Game: Hey player, make a move
+// Player: Okay, play card 100
+// Game: No you can't do that, do something else
+// Player: Okay, inform player -112a about their Potatoes
+// Game: Still no
+// Player: Fine, play my second card
+// Game: Great, that works
+
+// What I want:
+//    makeMove() -> (move: Move, makeMove: ???)
+
+struct ReasonHandler {
+    let handle: (IllegalMoveReason) -> Result<(Move, ReasonHandler), MakeMoveError>
+    /*func callAsFunction(reason: Reason) throw -> (Move, ReasonHandler) {
+        return try self.handle(reason).unwrap()
+    }*/
+    func callAsFunction(reason: IllegalMoveReason) -> Result<(Move, ReasonHandler), MakeMoveError> {
+        return self.handle(reason)
+    }
+}
+/*
+extension Result<T, MakeMoveError> {
+    func unwrap() throws -> T {
+        switch self {
+        case .value(let value):
+            return value
+        case .error(let error):
+            throw error
+        }
+    }
+}
+*/
+enum MakeMoveError: Error {
+    case leftGame
+    case disconnected
+    case other
+}
+
+enum IllegalMoveReason {
+    case invalidCard
+    case invalidPlayer
+    case outOfInfo
+}
+
+/*
+struct Game {
+    var player: Player
+
+    func main() {
+        var move: Move? = nil
+
+        var (attemptedMove, reasonHandler) = player.makeMove()
+        while (move == nil) {
+            if let reason = whyIsTheMoveInvalid(attemptedMove) {
+                switch reasonHandler(reason: reason) {
+                case .success(let pair):
+                    (attemptedMove, reasonHandler) = pair
+                case .failure(let error):
+                    giveUp(), crash(), whatever
+                }
+            } else {
+                move = attemptedMove
+            }
+        }
+
+        officiallyPlay(move!)
+    }
+}
+*/
+
 struct Card: CustomStringConvertible {
+
     enum Color: CaseIterable {
         case blue, red, yellow, green, purple
 
         var description: String {
             switch self {
-                case .blue: return "blue"
-                case .red: return "red"
-                case .yellow: return "yellow"
-                case .green: return "green"
-                case .purple: return "purple"
+            case .blue: return "blue"
+            case .red: return "red"
+            case .yellow: return "yellow"
+            case .green: return "green"
+            case .purple: return "purple"
             }
         }
     }
@@ -21,18 +93,18 @@ struct Card: CustomStringConvertible {
 
         var value: Int {
             switch self {
-                case .one: return 1
-                case .two: return 2
-                case .three: return 3
-                case .four: return 4
-                case .five: return 5
+            case .one: return 1
+            case .two: return 2
+            case .three: return 3
+            case .four: return 4
+            case .five: return 5
             }
         }
         var frequency: Int {
             switch self {
-                case .one: return 3
-                case .two, .three, .four: return 2
-                case .five: return 1
+            case .one: return 3
+            case .two, .three, .four: return 2
+            case .five: return 1
             }
         }
     }
@@ -128,27 +200,66 @@ struct Game {
     }
 
     mutating func run() {
-        updateEverything()
+       updateEverything()
 
         while !gameOver {
             for playerIndex in players.indices {
                 let player = players[playerIndex]
-
+    
                 var move: Move? = nil
-                while move == nil {
-                    let playerMove = player.selectMove()
 
-                    if case .giveInfo = playerMove, infoCount == 0 {
+                var attemptedMove: Move
+                var reasonHandler: ReasonHandler
+                switch player.makeMove() {
+                case .success(let pair):
+                    (attemptedMove, reasonHandler) = pair
+                case .failure(let error):
+                    fatalError("Test crash")
+                }
+
+                while move == nil {
+                    let reason: IllegalMoveReason?
+                    switch attemptedMove {
+                    case .discard(let cardIndex):
+                        if !hands[playerIndex].indices.contains(cardIndex) {
+                            reason = .invalidCard
+                        } else {
+                            reason = nil
+                        }
+                    case .play(let cardIndex):
+                        if !hands[playerIndex].indices.contains(cardIndex) {
+                            reason = .invalidCard
+                        } else {
+                            reason = nil
+                        }
+                    case .giveInfo(let otherPlayer, _):
+                        if !players.indices.contains(otherPlayer) {
+                            reason = .invalidPlayer
+                        } 
+                        else if infoCount == 0 {
+                            reason = .outOfInfo
+                        } else {
+                            reason = nil
+                        }
                     }
-                    else {
-                        move = playerMove
-                    }
+
+
+                    if let reason = reason {
+                        switch reasonHandler(reason: reason) {
+                        case .success(let pair):
+                            (attemptedMove, reasonHandler) = pair
+                        case .failure(let error):
+                            fatalError("Test crash")
+                        }
+                    } else {
+                        move = attemptedMove
+                    }                    
                 }
                 switch move! {
                 case .giveInfo(let otherPlayer, let info):
 
                     var indices: [Int] = []
-
+                    
                     for cardIndex in hands[otherPlayer].indices {
                         switch info {
                         case .color(let color): 
@@ -168,7 +279,7 @@ struct Game {
 
                     hands[playerIndex].remove(at: cardIndex)
                     if infoCount < maxInfoCount { infoCount += 1 }
-
+                    
                     if let newCard = deck.drawCard() {
                         hands[playerIndex].append(newCard)
                     } 
@@ -238,13 +349,14 @@ struct Game {
 protocol Player {
     func updateHand(player: Int, cards: [Card])
     func updatePile(color: Card.Color, currentNumber: Int)
-    func selectMove() -> (Move)//, handler: (InvalidMoveReason) -> Move)
+    //func selectMove() -> (Move)//, handler: (InvalidMoveReason) -> Move)
     func updateHand(count: Int)
     func updateInfo(count: Int)
     func updateStrikes(count: Int)
     func receiveInfo(cardIndices: [Int], info: Move.Info)
     func receivePlayerMoves(player: Int, move: Move)
     func gameOver(winType: WinType)
+    func makeMove() -> Result<(Move, ReasonHandler), MakeMoveError>
     //func warnPlayer(move: Move, reason: InvalidMoveReason)
 }
 
@@ -260,21 +372,39 @@ class ConsolePlayer: Player {
         print("\(color)'s pile: \(currentNumber)")
     }
 
-    func selectMove() -> Move {
+    func makeMove() -> Result<(Move, ReasonHandler), MakeMoveError> {
+        
         var finalMove: Move? = nil
-
         while finalMove == nil {
             print("\nWhat would you like to do?\nPlay: 1, Discard: 2, Info: 3")
 
             let move = readLine()
             if move == "1" {
                 print("\nWhich card would you like to play? [0-4]")
-                let cardIndex = readLine()!
-                finalMove = .play(card: Int(cardIndex) ?? 0)
+                var finalCard: Int? = nil
+                while finalCard == nil {
+                    let attemptedCard = readLine()!
+                    if let attemptedCard = Int(attemptedCard) {
+                        finalCard = attemptedCard
+                    } else {
+                        print("Attempted card dont work")
+                    }
+                }
+                finalMove = .play(finalCard)
+
             } else if move == "2" {
                 print("\nWhich card would you like to discard? [0-4]")
-                let cardIndex = readLine()!
-                finalMove = .discard(card: Int(cardIndex) ?? 0)
+                var finalCard: Int? = nil
+                while finalCard == nil {
+                    let attemptedCard = readLine()!
+                    if let attemptedCard = Int(attemptedCard) {
+                        finalCard = attemptedCard
+                    } else {
+                        print("Attempted card dont work")
+                    }
+                }
+                finalMove = .discard(finalCard)
+
             } else if move == "3" {
                 print("\nWho would you like to inform?")
                 let playerIndex = readLine()!
@@ -285,9 +415,16 @@ class ConsolePlayer: Player {
                 print("\nNot a valid move.")
             }
         }
-        return finalMove!
+
+        let reasonHandler = ReasonHandler(handle: { (reason: IllegalMoveReason) in 
+            print(reason)
+            return self.makeMove()
+        })
+
+        return .success((finalMove!, reasonHandler))
     }
-    func decipherInfo(input: String) -> Move.Info {
+
+    func decipherInfo(input: String) -> Move.Info? {
         if input == "blue" || input == "b" {
             return .color(.blue)
         }
@@ -319,9 +456,8 @@ class ConsolePlayer: Player {
             return .number(.five)
         }
         else {
-            print("Not a valid color or number. Options are: blue/b, red/r, yellow/y, green/g, and purple/p, or 1, 2, 3, 4, 5.")
-            let newAnswer = readLine()!
-            return decipherInfo(input: newAnswer)
+            //print("Not a valid color or number. Options are: blue/b, red/r, yellow/y, green/g, and purple/p, or 1, 2, 3, 4, 5.")
+            return nil
         }
     }
 
@@ -394,10 +530,19 @@ class ComputerPlayer: Player {
     }
     func updateHand(player: Int, cards: [Card]) {}
     func updatePile(color: Card.Color, currentNumber: Int) {}
-    func selectMove() -> Move {
-        return pickMove()
-        //return .discard(card: 0)
-        //return .giveInfo(player: 0, info: Move.Info.color(.blue))
+    func makeMove() -> Result<(Move, ReasonHandler), MakeMoveError> {
+        let move: Move 
+        let reasonHandler = ReasonHandler(handle: { reason in
+            fatalError()
+        })
+
+        if !playable.isEmpty {
+            move = .play(card: playable[0])
+        }
+        else {
+            move = .discard(card: 0)
+        }
+        return .success((move, reasonHandler))
     }
     func updateHand(count: Int) {}
     func updateInfo(count: Int) {}
@@ -410,18 +555,7 @@ class ComputerPlayer: Player {
             save.append(contentsOf: cardIndices)
         }
     }
-    func pickMove() -> Move {
-        if !playable.isEmpty {
-            return .play(card: playable[0])
-        }
-        else {
-            for index in 0...5 {
-                if !save.contains(index) {
-                }
-            }
-            return .discard(card: 0)
-        }
-    }
+
     func receivePlayerMoves(player: Int, move: Move) {}
     func gameOver(winType: WinType) {}
 }
@@ -432,8 +566,8 @@ enum Move {
         case number(Card.Number)
         var description: String {
             switch self {
-                case .color(let color): return color.description
-                case .number(let number): return number.description
+            case .color(let color): return color.description
+            case .number(let number): return number.description
             }
         }
     }
