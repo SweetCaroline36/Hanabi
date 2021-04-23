@@ -1,8 +1,10 @@
 struct Card: CustomStringConvertible {
 
+    // Let's make this a raw value type
     enum Color: CaseIterable {
         case blue, red, yellow, green, purple
 
+        // Did you mean for this to conform to CustomStringConvertible?
         var description: String {
             switch self {
             case .blue: return "blue"
@@ -14,6 +16,7 @@ struct Card: CustomStringConvertible {
         }
     }
 
+    // Let's make this a raw value type too
     enum Number: CaseIterable, CustomStringConvertible {
         case one, two, three, four, five
 
@@ -37,10 +40,12 @@ struct Card: CustomStringConvertible {
         }
     }
 
+    // Whitespace?
     let color: Color
 
     let number: Number
 
+    // Consider making this prettier
     var description: String {
         return "\(color) \(number)"
     }
