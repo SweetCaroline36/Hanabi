@@ -1,5 +1,4 @@
 class ConsolePlayer: Player {
-
     init() {}
 
     // I have decided this should be an unwrapped Optional, but I don't know when it should be initialized
@@ -24,22 +23,21 @@ class ConsolePlayer: Player {
     // It is actually reasonable to print here.
     // This method is way too long. It should be split up.
     func makeMove() -> Result<(Move, ReasonHandler), MakeMoveError> {
-        
-        var finalMove: Move? = nil
+        var finalMove: Move?
         while finalMove == nil {
             print("\nWhat would you like to do?\nPlay: 1, Discard: 2, Info: 3")
 
             let move = readLine()
             // Possibly we should refactor this into a method which takes integers (strings?) and creates moves. Also possibly not.
-            // Actually yeah, we should do this. 
+            // Actually yeah, we should do this.
             // The UI would be better if you could also type "play" or "p" or perhaps others
             if move == "1" {
                 print("\nWhich card would you like to play? [0-4]")
-                var finalCard: Int? = nil
+                var finalCard: Int?
                 while finalCard == nil {
                     // This ! should ideally be removed, perhaps fold it into the following `if let`
                     let attemptedCard = readLine()!
-                    if let attemptedCard = Int(attemptedCard), attemptedCard < handCount && attemptedCard >= 0 {  
+                    if let attemptedCard = Int(attemptedCard), attemptedCard < handCount, attemptedCard >= 0 {
                         finalCard = attemptedCard
                     } else { // Obviously the messaging should be cleaned up
                         print("Attempted card dont work")
@@ -49,11 +47,11 @@ class ConsolePlayer: Player {
 
             } else if move == "2" {
                 print("\nWhich card would you like to discard? [0-4]")
-                var finalCard: Int? = nil
+                var finalCard: Int?
                 while finalCard == nil {
                     // !
                     let attemptedCard = readLine()!
-                    if let attemptedCard = Int(attemptedCard), attemptedCard < handCount && attemptedCard >= 0 {
+                    if let attemptedCard = Int(attemptedCard), attemptedCard < handCount, attemptedCard >= 0 {
                         finalCard = attemptedCard
                     } else { // Fix messaging
                         print("Attempted card dont work")
@@ -63,7 +61,7 @@ class ConsolePlayer: Player {
 
             } else if move == "3" {
                 print("\nWho would you like to inform?")
-                var finalPlayerIndex: Int? = nil
+                var finalPlayerIndex: Int?
                 while finalPlayerIndex == nil {
                     // !
                     let attemptedPlayerIndex = readLine()!
@@ -75,7 +73,7 @@ class ConsolePlayer: Player {
                     }
                 }
                 print("\nWrite the number or color you would like to inform Player \(finalPlayerIndex!) about.\n")
-                var finalInformation: Move.Info? = nil
+                var finalInformation: Move.Info?
                 while finalInformation == nil {
                     // !
                     let information = readLine()!
@@ -90,7 +88,7 @@ class ConsolePlayer: Player {
             }
         }
 
-        let reasonHandler = ReasonHandler(handle: { (reason: IllegalMoveReason) in 
+        let reasonHandler = ReasonHandler(handle: { (reason: IllegalMoveReason) in
             print(reason)
             return self.makeMove()
         })
@@ -103,37 +101,27 @@ class ConsolePlayer: Player {
     func decipherInfo(input: String) -> Move.Info? {
         if input == "blue" || input == "b" {
             return .color(.blue)
-        }
-        else if input == "red" || input == "r" {
+        } else if input == "red" || input == "r" {
             return .color(.red)
-        }
-        else if input == "yellow" || input == "y" {
+        } else if input == "yellow" || input == "y" {
             return .color(.yellow)
-        }
-        else if input == "green" || input == "g" {
+        } else if input == "green" || input == "g" {
             return .color(.green)
-        }
-        else if input == "purple" || input == "p" {
+        } else if input == "purple" || input == "p" {
             return .color(.purple)
-        }
-        else if input == "1" {
+        } else if input == "1" {
             return .number(.one)
-        }
-        else if input == "2" {
+        } else if input == "2" {
             return .number(.two)
-        }
-        else if input == "3" {
+        } else if input == "3" {
             return .number(.three)
-        }
-        else if input == "4" {
+        } else if input == "4" {
             return .number(.four)
-        }
-        else if input == "5" {
+        } else if input == "5" {
             return .number(.five)
-        }
-        else {
+        } else {
             // Delete this comment after you decide you don't need it anymore.
-            //print("Not a valid color or number. Options are: blue/b, red/r, yellow/y, green/g, and purple/p, or 1, 2, 3, 4, 5.")
+            // print("Not a valid color or number. Options are: blue/b, red/r, yellow/y, green/g, and purple/p, or 1, 2, 3, 4, 5.")
             return nil
         }
     }
@@ -181,15 +169,15 @@ class ConsolePlayer: Player {
     // Don't print here
     func receivePlayerMoves(player: Int, move: Move) {
         switch move {
-        case .play(let card):
-            print("\nPlayer \(player) played card \(card).") //a \(card.color) \(card.number).")    
-        case .discard(let card):
-            print("\nPlayer \(player) discarded card \(card).") //a \(card.color) \(card.number).")
-        case .giveInfo(let receivingPlayer, let info):
+        case let .play(card):
+            print("\nPlayer \(player) played card \(card).") // a \(card.color) \(card.number).")
+        case let .discard(card):
+            print("\nPlayer \(player) discarded card \(card).") // a \(card.color) \(card.number).")
+        case let .giveInfo(receivingPlayer, info):
             switch info {
-            case .color(let cardColor):
-                print("\nPlayer \(player) told Player \(receivingPlayer) they have \(cardColor.description) cards.")     
-            case .number(let cardNumber):
+            case let .color(cardColor):
+                print("\nPlayer \(player) told Player \(receivingPlayer) they have \(cardColor.description) cards.")
+            case let .number(cardNumber):
                 print("\nPlayer \(player) told Player \(receivingPlayer) how many \(cardNumber.description)s they have.")
             }
         }
@@ -198,11 +186,11 @@ class ConsolePlayer: Player {
     // It's maybe okay to print here.
     func gameOver(winType: WinType) {
         switch winType {
-        case .lose(let strikes):
+        case let .lose(strikes):
             print("\(strikes) strikes! You lose. :/")
-        case .partialWin(let score, let strikes):
+        case let .partialWin(score, strikes):
             print("Game Over!\nYou all win, though you could've done better...\nStrikes: \(strikes)          Score: \(score)")
-        case .fullWin(let score, let strikes):
+        case let .fullWin(score, strikes):
             print("Game Over!\nAmazing job, you nailed it! :D\nStrikes: \(strikes)          Score: \(score)")
         }
     }

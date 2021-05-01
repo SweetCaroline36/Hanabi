@@ -1,9 +1,9 @@
-//interface between game and player
+// interface between game and player
 protocol Player {
     func updateHand(player: Int, cards: [Card])
     func updatePile(color: Card.Color, currentNumber: Int)
     // I've decided that I think this API is poorly specified.
-    // If we know that index 3 is blue and then a card is removed from our hand, 
+    // If we know that index 3 is blue and then a card is removed from our hand,
     //  is the Player responsible for knowing if this card is now at index 2 or is still at index 3?
     // Possibly, our hand should be represented as an opaque ID type that is persistent across playing/discarding/drawing
     func updateHand(count: Int)
@@ -18,12 +18,13 @@ protocol Player {
     // Perhaps we need to make PlayerDelegates which create instances of Player for each game the User wishes to join.
     // Perhaps we make Player and PlayerDelegate into a single protocol and add that functionality here.
 }
+
 // The Player protocol could be dramatically simplified by defining a structure that is the state of the game from the perspective of a player
-//struct GameState {
+// struct GameState {
 //    var sizeOfHand: Int
 //    var othersCards: [Int: [Card]]
 //    var info: Int
-//}
+// }
 // and then having Player have a method of type
 // func recieveUpdate<T>(key: KeyPath<GameState,T>, value: T)
 // This could be called like player.recieveUpdate(key: \.sizeOfHand, value: 4)
@@ -31,25 +32,26 @@ protocol Player {
 // Should probably be renamed to IllegalMoveHandler
 struct ReasonHandler {
     let handle: (IllegalMoveReason) -> Result<(Move, ReasonHandler), MakeMoveError>
-    /*func callAsFunction(reason: Reason) throw -> (Move, ReasonHandler) {
-        return try self.handle(reason).unwrap()
-    }*/
+    /* func callAsFunction(reason: Reason) throw -> (Move, ReasonHandler) {
+         return try self.handle(reason).unwrap()
+     } */
     func callAsFunction(reason: IllegalMoveReason) -> Result<(Move, ReasonHandler), MakeMoveError> {
-        return self.handle(reason)
+        handle(reason)
     }
 }
+
 /*
-extension Result<T, MakeMoveError> {
-    func unwrap() throws -> T {
-        switch self {
-        case .value(let value):
-            return value
-        case .error(let error):
-            throw error
-        }
-    }
-}
-*/
+ extension Result<T, MakeMoveError> {
+     func unwrap() throws -> T {
+         switch self {
+         case .value(let value):
+             return value
+         case .error(let error):
+             throw error
+         }
+     }
+ }
+ */
 enum MakeMoveError: Error {
     case leftGame
     case disconnected
@@ -68,15 +70,17 @@ enum Move {
         case number(Card.Number)
         var description: String {
             switch self {
-            case .color(let color): return color.description
-            case .number(let number): return number.description
+            case let .color(color): return color.description
+            case let .number(number): return number.description
             }
         }
     }
+
     case giveInfo(player: Int, info: Info)
     case discard(card: Int)
     case play(card: Int)
-}  
+}
+
 enum WinType {
     case lose(strikes: Int)
     case partialWin(score: Int, strikes: Int)

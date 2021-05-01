@@ -5,11 +5,12 @@ class ComputerPlayer: Player {
         playable = []
         save = []
     }
-    func updateHand(player: Int, cards: [Card]) {}
-    func updatePile(color: Card.Color, currentNumber: Int) {}
+
+    func updateHand(player _: Int, cards _: [Card]) {}
+    func updatePile(color _: Card.Color, currentNumber _: Int) {}
     func makeMove() -> Result<(Move, ReasonHandler), MakeMoveError> {
-        let move: Move 
-        let reasonHandler = ReasonHandler(handle: { reason in
+        let move: Move
+        let reasonHandler = ReasonHandler(handle: { _ in
             fatalError()
         })
 
@@ -19,15 +20,15 @@ class ComputerPlayer: Player {
             // The indices of your cards may change once you play something
             // We haven't really thought about how that should work...
             // We should probably change the Player protocol to account for this.
-        }
-        else {
+        } else {
             move = .discard(card: 0)
         }
         return .success((move, reasonHandler))
     }
-    func updateHand(count: Int) {}
-    func updateInfo(count: Int) {}
-    func updateStrikes(count: Int) {}
+
+    func updateHand(count _: Int) {}
+    func updateInfo(count _: Int) {}
+    func updateStrikes(count _: Int) {}
     func receiveInfo(cardIndices: [Int], info: Move.Info) {
         // Why are you comparing against the description?
         // The description of a type is probably not part of the stable API.
@@ -41,6 +42,6 @@ class ComputerPlayer: Player {
         }
     } // Whitespace?
 
-    func receivePlayerMoves(player: Int, move: Move) {}
-    func gameOver(winType: WinType) {}
+    func receivePlayerMoves(player _: Int, move _: Move) {}
+    func gameOver(winType _: WinType) {}
 }

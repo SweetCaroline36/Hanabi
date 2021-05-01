@@ -1,5 +1,4 @@
 struct Card: CustomStringConvertible {
-
     // Let's make this a raw value type
     enum Color: CaseIterable {
         case blue, red, yellow, green, purple
@@ -31,6 +30,7 @@ struct Card: CustomStringConvertible {
             case .five: return 5
             }
         }
+
         var frequency: Int {
             switch self {
             case .one: return 3
@@ -47,6 +47,6 @@ struct Card: CustomStringConvertible {
 
     // Consider making this prettier
     var description: String {
-        return "\(color) \(number)"
+        "\(color) \(number)"
     }
 }

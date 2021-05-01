@@ -1,7 +1,6 @@
 // I don't think this is important enough to get its own file. It's only used in Game. I think just put this in that file.
-// Whitespace? 
+// Whitespace?
 struct Deck {
-
     var storage: [Card]
 
     init() {
@@ -14,7 +13,8 @@ struct Deck {
         }
         storage.shuffle()
     }
+
     mutating func drawCard() -> Card? {
-        return storage.popLast()
+        storage.popLast()
     }
 }
